@@ -11,7 +11,6 @@ public sealed class Movement : MonoBehaviour
     private IIsColliding _sideLeft;
     private IIsColliding _sideRight;
     private bool _isJumping;
-    private PlayerStates _playerState;
     
 #nullable enable
     
@@ -36,22 +35,25 @@ public sealed class Movement : MonoBehaviour
 
     void Update()
     {
-        var facingMask = (PlayerStates.FacingLeft | PlayerStates.FacingRight);
-        var newState = _stateManager.State & facingMask;
+        // Only keep the facing direction info.
+        var newState = _stateManager.State & PlayerStates.FacingMask;
         
         // This check is needed to prevent the player from sticking onto the side
         // of a platform.
-        if (!_sideRight.IsColliding || !_sideRight.IsColliding)
+        if (!_sideLeft.IsColliding || !_sideRight.IsColliding)
         {
             int movingDirection = HandleHorizontalMovement();
+
             if (movingDirection != 0)
-                newState |= PlayerStates.Moving;
-            else
             {
-                newState &= facingMask;
+                newState |= PlayerStates.Moving;
+                
+                // The facing direction is going to be reset
+                newState &= ~PlayerStates.FacingMask;
+                
                 if (movingDirection == 1)
                     newState |= PlayerStates.FacingRight;
-                if (movingDirection == -1)
+                else // if (movingDirection == -1)
                     newState |= PlayerStates.FacingLeft;
             }
         }
@@ -67,6 +69,7 @@ public sealed class Movement : MonoBehaviour
             bool isTryingToDoJump = HandleJump();   
             if (isTryingToDoJump)
                 newState |= PlayerStates.Jumping;
+            _isJumping = isTryingToDoJump;
         }
         else
         {
@@ -78,6 +81,7 @@ public sealed class Movement : MonoBehaviour
         // This should probably only work with masked input, and then the
         // actual handler of the state change should happen after all handlers
         // of state have run.
+        // That would make sense if we had states other than movement stored in this variable.
         _stateManager.State = newState;
         
         int HandleHorizontalMovement()
@@ -129,8 +133,8 @@ public sealed class Movement : MonoBehaviour
                 // it just shows whether the jump button is being pressed.
                 // There is no 100% ideal solution.
                 // A better approach would be checking the colliders connected to the feet collider,
-                // or handling the jump is some different way (building up the jump momentum independent
-                // of the ground, while the button is being pressed down, but that's way to complicated
+                // or handling the jump in some different way (building up the jump momentum independent
+                // of the ground, while the button is being pressed down, but that's way too complicated
                 // to implement quickly, I'd need a day at least).
                 if (_isJumping)
                     return true;
@@ -138,11 +142,9 @@ public sealed class Movement : MonoBehaviour
                 float jumpForceY = _movement.JumpForce;
                 Vector2 jumpForce = jumpForceY * Vector2.up;
                 _hierarchy.Rigidbody.AddForce(jumpForce, ForceMode2D.Impulse);
-                _isJumping = true;
                 return true;
             }
 
-            _isJumping = false;
             return false;
         }
     }

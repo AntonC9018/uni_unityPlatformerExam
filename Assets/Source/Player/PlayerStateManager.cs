@@ -9,6 +9,8 @@ public enum PlayerStates
     Jumping = 1 << 1,
     Falling = 1 << 2,
     Dead = 1 << 3,
+    
+    FacingMask = FacingLeft | FacingRight,
     FacingLeft = 1 << 4,
     FacingRight = 1 << 5,
 }
