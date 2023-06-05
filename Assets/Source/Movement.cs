@@ -24,6 +24,10 @@ public sealed class Movement : MonoBehaviour
 
     void Update()
     {
+        // Aici nu folosesc conceptul Time.deltaTime, deoarce misc obiectul alterandu-i velocity.
+        // Miscarea prin Time.deltaTime are sens numai daca miscam obiectul manual (ii resetam pozitia).
+        // Atunci codul ar fi cam asa:
+        // transform.position += new Vector3(horizontalInput, 0, 0) * Time.deltaTime * _movement.HorizontalSpeed;
         float horizontalInput = 0;
         foreach (var key in _controls.Left)
         {
