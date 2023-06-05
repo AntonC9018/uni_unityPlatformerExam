@@ -5,6 +5,6 @@ public sealed class ControlsScriptableObject : ScriptableObject
 {
     public KeyCode[] Left = { KeyCode.A, KeyCode.LeftArrow };
     public KeyCode[] Right = { KeyCode.D, KeyCode.RightArrow };
-    public KeyCode[] Up = { KeyCode.W, KeyCode.UpArrow };
+    public KeyCode[] Jump = { KeyCode.W, KeyCode.UpArrow };
     public KeyCode[] Down = { KeyCode.S, KeyCode.DownArrow };
 }
