@@ -33,7 +33,7 @@ public sealed class Movement : MonoBehaviour
         {
             if (Input.GetKey(key))
             {
-                horizontalInput -= _movement.HorizontalSpeed;
+                horizontalInput -= 1;
                 break;
             }
         }
@@ -41,13 +41,14 @@ public sealed class Movement : MonoBehaviour
         {
             if (Input.GetKey(key))
             {
-                horizontalInput += _movement.HorizontalSpeed;
+                horizontalInput += 1;
                 break;
             }
         }
 
         float currentVerticalVelocity = _rigidbody2D.velocity.y;
-        Vector2 newVelocity = new Vector2(horizontalInput, currentVerticalVelocity);
+        float horizontalVelocity = horizontalInput * _movement.HorizontalSpeed;
+        Vector2 newVelocity = new Vector2(horizontalVelocity, currentVerticalVelocity);
         _rigidbody2D.velocity = newVelocity;
     }
 }
