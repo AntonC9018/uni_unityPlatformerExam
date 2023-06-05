@@ -1,57 +1,17 @@
-using System;
 using UnityEngine;
-using UnityEngine.Serialization;
-
-public sealed class InitializationFailureException : Exception
-{
-}
-
-public static class Layers
-{
-    public static bool Contains(this LayerMask mask, int layer)
-    {
-        return mask == (mask | (1 << layer));
-    }
-    public const int GroundLayer = 6;
-}
-
-[Serializable]
-public struct PlayerHierarchy
-{
-    public Rigidbody2D Rigidbody;
-    public Collider2D WholeBodyCollider;
-    public Collider2D FeetCollider;
-    public Collider2D SideLeftCollider;
-    public Collider2D SideRightCollider;
-
-    public readonly bool IsValid()
-    {
-        if (Rigidbody == null)
-            return false;
-        if (WholeBodyCollider == null)
-            return false;
-        if (FeetCollider == null)
-            return false;
-        if (SideLeftCollider == null)
-            return false;
-        if (SideRightCollider == null)
-            return false;
-        return true;
-    }
-}
-
 
 public sealed class Movement : MonoBehaviour
 {
     [SerializeField] private ControlsScriptableObject _controls;
     [SerializeField] private MovementScriptableObject _movement;
     
-    [SerializeField] PlayerHierarchy _hierarchy;
+    [SerializeField] private PlayerHierarchy _hierarchy;
+    [SerializeField] private PlayerStateManager _stateManager;
     private IIsColliding _feet;
     private IIsColliding _sideLeft;
     private IIsColliding _sideRight;
     private bool _isJumping;
-    
+    private PlayerStates _playerState;
     
 #nullable enable
     
@@ -85,19 +45,38 @@ public sealed class Movement : MonoBehaviour
 
     void Update()
     {
+        PlayerStates newState = 0;
+        
         // This check is needed to prevent the player from sticking onto the side
         // of a platform.
         if (!_sideRight.IsColliding || !_sideRight.IsColliding)
-            HandleHorizontalMovement();
+        {
+            bool isMoving = HandleHorizontalMovement();
+            if (isMoving)
+                newState |= PlayerStates.Moving;
+        }
         
         // This check is to prevent jumping while in the air.
         if (_feet.IsColliding)
-            HandleJump();
+        {
+            bool isTryingToDoJump = HandleJump();   
+            if (isTryingToDoJump)
+                newState |= PlayerStates.Jumping;
+        }
         else
+        {
             // Could reset this in an event on the collision checker.
             _isJumping = false;
+            newState |= PlayerStates.Falling;
+        }
+        
+        // This should probably only work with masked input, and then the
+        // actual handler of the state change should happen after all handlers
+        // of state have run.
+        _stateManager.State = newState;
+        
             
-        void HandleHorizontalMovement()
+        bool HandleHorizontalMovement()
         {
             // Aici nu folosesc conceptul Time.deltaTime, deoarce misc obiectul alterandu-i velocity.
             // Miscarea prin Time.deltaTime are sens numai daca miscam obiectul manual (ii resetam pozitia).
@@ -127,15 +106,18 @@ public sealed class Movement : MonoBehaviour
                 }
             }
 
+            if (horizontalInput == 0)
+                return false;
+
             float currentVerticalVelocity = _hierarchy.Rigidbody.velocity.y;
             float horizontalVelocity = horizontalInput * _movement.HorizontalSpeed;
             Vector2 newVelocity = new Vector2(horizontalVelocity, currentVerticalVelocity);
             _hierarchy.Rigidbody.velocity = newVelocity;
+            return true;
         }
 
-        void HandleJump()
+        bool HandleJump()
         {
-            bool isJumping = false;
             foreach (var key in _controls.Jump)
             {
                 if (!Input.GetKey(key))
@@ -150,16 +132,17 @@ public sealed class Movement : MonoBehaviour
                 // of the ground, while the button is being pressed down, but that's way to complicated
                 // to implement quickly, I'd need a day at least).
                 if (_isJumping)
-                    return;
+                    return true;
                     
                 float jumpForceY = _movement.JumpForce;
                 Vector2 jumpForce = jumpForceY * Vector2.up;
                 _hierarchy.Rigidbody.AddForce(jumpForce, ForceMode2D.Impulse);
                 _isJumping = true;
-                return;
+                return true;
             }
 
             _isJumping = false;
+            return false;
         }
     }
 }
