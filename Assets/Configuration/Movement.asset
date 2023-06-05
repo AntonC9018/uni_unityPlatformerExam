@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Movement
   m_EditorClassIdentifier: 
   HorizontalSpeed: 1.74
-  JumpForce: 1
+  JumpForce: 7

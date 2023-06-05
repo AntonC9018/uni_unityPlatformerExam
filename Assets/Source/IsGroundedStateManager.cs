@@ -1,15 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public interface IIsGrounded
-{
-    bool IsGrounded { get; }
-}
-
-public sealed class IsGroundedStateManager : MonoBehaviour, IIsGrounded
+public sealed class IsCollidingStateManager : MonoBehaviour, IIsColliding
 {
     private List<Collider2D> _touchingGroundColliders = new();
-    public bool IsGrounded => _touchingGroundColliders.Count > 0;
+    public bool IsColliding => _touchingGroundColliders.Count > 0;
 
     void Start()
     {
