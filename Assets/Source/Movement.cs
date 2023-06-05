@@ -42,9 +42,13 @@ public sealed class Movement : MonoBehaviour
         // of a platform.
         if (!_sideRight.IsColliding || !_sideRight.IsColliding)
         {
-            bool isMoving = HandleHorizontalMovement();
-            if (isMoving)
+            int movingDirection = HandleHorizontalMovement();
+            if (movingDirection != 0)
                 newState |= PlayerStates.Moving;
+            if (movingDirection == 1)
+                newState |= PlayerStates.FacingRight;
+            if (movingDirection == -1)
+                newState |= PlayerStates.FacingLeft;
         }
         else
         {
@@ -71,14 +75,13 @@ public sealed class Movement : MonoBehaviour
         // of state have run.
         _stateManager.State = newState;
         
-            
-        bool HandleHorizontalMovement()
+        int HandleHorizontalMovement()
         {
             // Aici nu folosesc conceptul Time.deltaTime, deoarce misc obiectul alterandu-i velocity.
             // Miscarea prin Time.deltaTime are sens numai daca miscam obiectul manual (ii resetam pozitia).
             // Atunci codul ar fi cam asa:
             // transform.position += new Vector3(horizontalInput, 0, 0) * Time.deltaTime * _movement.HorizontalSpeed;
-            float horizontalInput = 0;
+            int horizontalInput = 0;
             if (!_sideLeft.IsColliding)
             {
                 foreach (var key in _controls.Left)
@@ -106,7 +109,7 @@ public sealed class Movement : MonoBehaviour
             float horizontalVelocity = horizontalInput * _movement.HorizontalSpeed;
             Vector2 newVelocity = new Vector2(horizontalVelocity, currentVerticalVelocity);
             _hierarchy.Rigidbody.velocity = newVelocity;
-            return horizontalInput != 0;
+            return horizontalInput;
         }
 
         bool HandleJump()

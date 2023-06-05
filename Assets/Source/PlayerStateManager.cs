@@ -9,6 +9,8 @@ public enum PlayerStates
     Jumping = 1 << 1,
     Falling = 1 << 2,
     Dead = 1 << 3,
+    FacingLeft = 1 << 4,
+    FacingRight = 1 << 5,
 }
 
 public delegate void MovingStateChanged(PlayerStates oldState, PlayerStates newState);
@@ -33,8 +35,8 @@ public sealed class PlayerStateManager : MonoBehaviour, IPlayerState
         {
             if (value != _state)
             {
-                _state = value;
                 OnMovingStateChanged?.Invoke(_state, value);
+                _state = value;
             }
         }
     }
