@@ -17,18 +17,9 @@ public sealed class Movement : MonoBehaviour
     
     void Start()
     {
-        void Invalid()
-        {
-#if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-#endif
-            enabled = false;
-            throw new InitializationFailureException();
-        }
-
         if (!_hierarchy.IsValid())
         {
-            Invalid();
+            this.FailInitialization();
             return;
         }
         _feet = _hierarchy.FeetCollider.GetComponent<IIsColliding>();
@@ -38,7 +29,7 @@ public sealed class Movement : MonoBehaviour
             || _sideLeft == null 
             || _sideRight == null)
         {
-            Invalid();
+            this.FailInitialization();
             return;
         }
     }
@@ -54,6 +45,11 @@ public sealed class Movement : MonoBehaviour
             bool isMoving = HandleHorizontalMovement();
             if (isMoving)
                 newState |= PlayerStates.Moving;
+        }
+        else
+        {
+            var rb = _hierarchy.Rigidbody;
+            rb.velocity = new Vector2(0, rb.velocity.y);
         }
         
         // This check is to prevent jumping while in the air.
@@ -106,14 +102,11 @@ public sealed class Movement : MonoBehaviour
                 }
             }
 
-            if (horizontalInput == 0)
-                return false;
-
             float currentVerticalVelocity = _hierarchy.Rigidbody.velocity.y;
             float horizontalVelocity = horizontalInput * _movement.HorizontalSpeed;
             Vector2 newVelocity = new Vector2(horizontalVelocity, currentVerticalVelocity);
             _hierarchy.Rigidbody.velocity = newVelocity;
-            return true;
+            return horizontalInput != 0;
         }
 
         bool HandleJump()
