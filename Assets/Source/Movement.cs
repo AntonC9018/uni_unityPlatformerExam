@@ -36,7 +36,8 @@ public sealed class Movement : MonoBehaviour
 
     void Update()
     {
-        PlayerStates newState = 0;
+        var facingMask = (PlayerStates.FacingLeft | PlayerStates.FacingRight);
+        var newState = _stateManager.State & facingMask;
         
         // This check is needed to prevent the player from sticking onto the side
         // of a platform.
@@ -45,10 +46,14 @@ public sealed class Movement : MonoBehaviour
             int movingDirection = HandleHorizontalMovement();
             if (movingDirection != 0)
                 newState |= PlayerStates.Moving;
-            if (movingDirection == 1)
-                newState |= PlayerStates.FacingRight;
-            if (movingDirection == -1)
-                newState |= PlayerStates.FacingLeft;
+            else
+            {
+                newState &= facingMask;
+                if (movingDirection == 1)
+                    newState |= PlayerStates.FacingRight;
+                if (movingDirection == -1)
+                    newState |= PlayerStates.FacingLeft;
+            }
         }
         else
         {
